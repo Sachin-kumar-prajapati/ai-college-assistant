@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>AI College Assistant</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f5f9;
+    }
+
+    .header {
+      background: #2563eb;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .header h1 {
+      margin: 0 0 8px;
+    }
+
+    .header p {
+      margin: 0;
+    }
+
+    .chat-box {
+      max-width: 700px;
+      height: 600px;
+      margin: 30px auto;
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+
+      display: flex;
+      flex-direction: column;
+    }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .message {
+      padding: 12px 15px;
+      margin: 10px 0;
+      border-radius: 12px;
+      max-width: 80%;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+
+    .user {
+      background: #dbeafe;
+      margin-left: auto;
+    }
+
+    .bot {
+      background: #e5e7eb;
+      margin-right: auto;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    #messageInput {
+      flex: 1;
+      padding: 14px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    #messageInput:focus {
+      border-color: #2563eb;
+    }
+
+    button {
+      padding: 14px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 600px) {
+      .chat-box {
+        margin: 15px;
+        height: 600px;
+      }
+
+      .input-area {
+        flex-direction: column;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <h1>🎓 AI College Assistant</h1>
+    <p>Your Smart College Assistant</p>
+  </div>
+
+  <div class="chat-box">
+
+    <div id="messages">
+
+      <div class="message bot">
+        👋 Hello! I am your AI College Assistant.
+        <br>
+        Ask me anything.
+      </div>
+
+    </div>
+
+    <div class="input-area">
+
+      <input
+        type="text"
+        id="messageInput"
+        placeholder="Type your question..."
+        autocomplete="off"
+      >
+
+      <button id="sendButton" onclick="sendMessage()">
+        Send
+      </button>
+
+    </div>
+
+  </div>
+
+  <script>
+
+    async function sendMessage() {
+
+      const input = document.getElementById("messageInput");
+      const messages = document.getElementById("messages");
+      const sendButton = document.getElementById("sendButton");
+
+      const message = input.value.trim();
+
+      if (!message) {
+        return;
+      }
+
+      // Show user message
+      const userMessage = document.createElement("div");
+      userMessage.className = "message user";
+      userMessage.textContent = message;
+
+      messages.appendChild(userMessage);
+
+      // Clear input
+      input.value = "";
+
+      // Disable button
+      sendButton.disabled = true;
+      sendButton.textContent = "Thinking...";
+
+      // Show thinking message
+      const botMessage = document.createElement("div");
+      botMessage.className = "message bot";
+      botMessage.textContent = "🤔 Thinking...";
+
+      messages.appendChild(botMessage);
+
+      messages.scrollTop = messages.scrollHeight;
+
+      try {
+
+        const response = await fetch("/chat", {
+
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify({
+            message: message
+          })
+
+        });
+
+        const data = await response.json();
+
+        if (data.reply) {
+
+          botMessage.textContent = data.reply;
+
+        } else {
+
+          botMessage.textContent =
+            "❌ AI ने कोई जवाब नहीं दिया।";
+
+        }
+
+      } catch (error) {
+
+        console.error(error);
+
+        botMessage.textContent =
+          "❌ AI से connection नहीं हो पाया।";
+
+      }
+
+      sendButton.disabled = false;
+      sendButton.textContent = "Send";
+
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+
+    // Enter key से भी message भेज सकें
+    document
+      .getElementById("messageInput")
+      .addEventListener("keydown", function(event) {
+
+        if (event.key === "Enter") {
+          sendMessage();
+        }
+
+      });
+
+  </script>
+
+</body>
+</html>
